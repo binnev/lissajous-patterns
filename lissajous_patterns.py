@@ -110,74 +110,6 @@ def lissajous_point(A_x, A_y, w_x, w_y, d_x, d_y, l_x, l_y, t):
     y = l_y * p_y
     return x, y
 
-## input the angular parameters directly
-#A_x = 1
-#A_y = 1
-#w_x = 2
-#w_y = 1
-#d_x = 0
-#d_y = -np.pi/2
-#
-## time
-#t_max = 10
-#d_time = 0.03
-#t = np.arange(0, t_max, d_time)
-#
-## my model
-#x = A_x * np.cos(w_x*t + d_x)  # angle
-#y = A_y * np.cos(w_y*t + d_y)
-#
-## wiki model
-#A = A_x
-#B = A_y
-#a = w_x
-#b = w_y
-#d = d_x + np.pi/2
-#x_wp = A * np.sin(a*t + d)
-#y_wp = B * np.sin(b*t)
-#
-## wolfram model
-#a_wr = A_x
-#b_wr = A_y
-#w_wr = w_x/w_y
-#d_wr = d
-#x_wr = a_wr * np.sin(w_wr*t+d_wr)
-#y_wr = b_wr * np.sin(t)
-#
-#f = dict(ls=":", lw=6, c="c", alpha=1, label="my model", zorder=1)
-#f_wp = dict(lw=2, c="goldenrod", alpha=1, label="wp model", zorder=2)
-#f_wr = dict(lw=8, c="k", alpha=1, label="wr model", zorder=0)
-#
-## create figure
-#fig, ax = plt.subplots(3, 1, figsize=(6,12))
-#plt.suptitle(("$a={:0.3f}$, ".format(a)+
-#           "$b={:0.3f}$, ".format(b)+
-#           "$a/b={:0.3f}$\n".format(a/b)+
-#           "$\delta_x={:0.3f}\pi$, ".format(d_x/np.pi)+
-#           "$\delta_y={:0.3f}\pi$, ".format(d_y/np.pi)+
-#           "$\delta={:0.3f}\pi$".format(d/np.pi)
-#           ))
-#plt.setp(ax[0], xlabel="t", ylabel="x")
-#ax[0].plot(t, x, **f)
-#ax[0].plot(t, x_wr, **f_wr)
-#ax[0].plot(t, x_wp, **f_wp)
-#plt.setp(ax[1], xlabel="t", ylabel="y")
-#ax[1].plot(t, y, **f)
-#ax[1].plot(t, y_wr, **f_wr)
-#ax[1].plot(t, y_wp, **f_wp)
-#
-#plt.axis("square")
-#plt.plot(x_wr, y_wr, **f_wr)
-#plt.plot(x, y, **f)
-#plt.plot(x_wp, y_wp, **f_wp)
-#lim = [-2, 2]
-#plt.setp(ax, xlim=lim, ylim=lim)
-#for spine in ax[-1].spines.values():  # move spines to origin
-#    spine.set_position(("data", 0))
-#ax[-1].set_xticks(lim)
-#ax[-1].set_yticks(lim)
-#plt.legend()
-
 
 # %% tkinter gui
 
@@ -203,7 +135,7 @@ class SandPendulumGUI:
         self.show_ratio.initialize(False)
 
         # create the mpl Figure instance on which to plot
-        fig = Figure(figsize=(6, 6))
+        fig = Figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
         self.fig = fig  # store these handles
         self.ax = ax
@@ -234,8 +166,9 @@ class SandPendulumGUI:
             entry.pack(side=side)
             entry.insert(0, default)
             return entry
+
         self.l_x_entry = makeEntry(window, "Total length: L (m)",
-                                   self.l_x, side=None)
+                                   self.l_x)
         self.l_y_entry = makeEntry(window, "Length of pendulum 2: l (m)",
                                    self.l_y)
         self.t_max_entry = makeEntry(window, "Time to simulate: t_max (s)",
@@ -269,16 +202,17 @@ class SandPendulumGUI:
                                    command=self.clear_axes)
         self.clear_button.pack()#side=LEFT)
 
+        # define save figure button
+        self.save_button = Button(window, text="Save figure",
+                                   command=self.save_figure)
+        self.save_button.pack()#side=LEFT)
+
         # define exit button
         self.close_button = Button(window, text="Close", command=window.quit)
         self.close_button.pack()#side=RIGHT)
 
     def toggle(self, var):
-#        print("var passed to self.toggle was", var.get())
-#        print("self.predict_path was", self.predict_path.get())
         var.set(not var.get())
-#        print("var passed to self.toggle has been set to", var.get())
-#        print("self.predict_path is now", self.predict_path.get())
 
     def canvasClick(self, event):
         if event.button != 1:  # ignore mouse clicks that aren't button 1
@@ -327,6 +261,9 @@ class SandPendulumGUI:
             artist.remove()  # remove all artists (inverse Cass Art)
         self.fig.canvas.draw_idle()  # update the axes
 
+    def save_figure(self):
+        self.fig.savefig("output.png")
+
     def plot_lissajous(self, A_x, A_y, w_x, w_y, d_x, d_y, l_x, l_y, t_max,
                        d_time):
         self.active = True  # set the active flag so no other events are logged
@@ -339,8 +276,6 @@ class SandPendulumGUI:
             # static plot
             for ii, c in zip(range(1, len(xs)), colours):
                 self.ax.plot((xs[ii-1], xs[ii]), (ys[ii-1], ys[ii]), "-", c=c)
-            # self.fig.canvas.draw_idle()
-            # self.fig.canvas.blit()
 
         # animated plot
         def update_plot():
